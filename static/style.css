@@ -1,0 +1,219 @@
+/* Koyu tema için ana renkler */
+:root {
+    --dark-bg: #1a1a1a;
+    --card-bg: #2d2d2d;
+    --text-color: #ffffff;
+    --border-color: #404040;
+    --input-bg: #3a3a3a;
+    --hover-bg: #404040;
+}
+
+body {
+    background-color: var(--dark-bg);
+    color: var(--text-color);
+}
+
+.card {
+    background-color: var(--card-bg);
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.2);
+    margin-bottom: 20px;
+    border: 1px solid var(--border-color);
+}
+
+.card-title {
+    color: var(--text-color);
+}
+
+#chartContainer {
+    min-height: 600px;
+}
+
+.indicator-value {
+    font-weight: bold;
+}
+
+.signal-buy {
+    color: #2ecc71;
+}
+
+.signal-sell {
+    color: #e74c3c;
+}
+
+.signal-neutral {
+    color: #95a5a6;
+}
+
+.entry-point {
+    margin-bottom: 10px;
+    padding: 10px;
+    border-left: 3px solid #007bff;
+    background-color: var(--input-bg);
+}
+
+.current-price {
+    font-weight: bold;
+    color: #3498db;
+    border-left: 3px solid #3498db;
+    padding-left: 10px;
+    margin: 10px 0;
+}
+
+.entry-point small {
+    color: #bdc3c7;
+    font-style: italic;
+}
+
+#tradingview_widget {
+    min-height: 500px;
+    margin-bottom: 20px;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid var(--border-color);
+}
+
+/* Select2 koyu tema stilleri */
+.select2-container--default .select2-selection--single {
+    height: 45px;
+    background-color: var(--input-bg);
+    border: 2px solid var(--border-color);
+    border-radius: 0.5rem;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__rendered {
+    line-height: 42px;
+    padding-left: 15px;
+    color: var(--text-color);
+    font-size: 1.1em;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__arrow {
+    height: 43px;
+    width: 30px;
+}
+
+.select2-container--default .select2-search--dropdown .select2-search__field {
+    background-color: var(--input-bg);
+    border: 2px solid var(--border-color);
+    border-radius: 0.5rem;
+    padding: 10px 15px;
+    color: var(--text-color);
+    font-size: 1.1em;
+}
+
+.select2-dropdown {
+    background-color: var(--card-bg);
+    border: 2px solid var(--border-color);
+    border-radius: 0.5rem;
+}
+
+.select2-results__option {
+    padding: 10px 15px;
+    color: var(--text-color);
+    font-size: 1.1em;
+}
+
+.select2-container--default .select2-results__option--highlighted[aria-selected] {
+    background-color: var(--hover-bg);
+}
+
+.select2-container--default .select2-results__option[aria-selected=true] {
+    background-color: var(--hover-bg);
+}
+
+/* Form elemanları için koyu tema */
+.form-select, .form-control {
+    background-color: var(--input-bg);
+    border: 2px solid var(--border-color);
+    color: var(--text-color);
+    padding: 10px 15px;
+    height: 45px;
+}
+
+.form-select:focus, .form-control:focus {
+    background-color: var(--input-bg);
+    border-color: #007bff;
+    color: var(--text-color);
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+/* Mobil uyumluluk */
+@media (max-width: 768px) {
+    .select2-container--default {
+        width: 100% !important;
+    }
+    
+    .form-select, .form-control, .select2-container--default .select2-selection--single {
+        font-size: 16px; /* Mobilde daha iyi görünüm için */
+    }
+}
+
+/* TradingView widget için koyu tema ayarları */
+.tradingview-widget-container {
+    background-color: var(--card-bg);
+    border-radius: 8px;
+    padding: 10px;
+}
+
+.zone-item {
+    padding: 10px;
+    margin-bottom: 10px;
+    background: var(--input-bg);
+    border-radius: 5px;
+    position: relative;
+}
+
+.zone-item.resistance {
+    border-left: 4px solid #e74c3c;
+}
+
+.zone-item.support {
+    border-left: 4px solid #2ecc71;
+}
+
+.zone-price {
+    font-size: 1.2em;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.zone-details {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.zone-type {
+    font-size: 0.9em;
+    color: #95a5a6;
+}
+
+.strength-bar {
+    height: 4px;
+    background: #3498db;
+    border-radius: 2px;
+}
+
+.strength-text {
+    font-size: 0.8em;
+    color: #bdc3c7;
+}
+
+.trend-bullish {
+    color: #2ecc71;
+}
+
+.trend-bearish {
+    color: #e74c3c;
+}
+
+.current-price-indicator {
+    padding: 10px;
+    margin: 15px 0;
+    background: var(--hover-bg);
+    border-radius: 5px;
+    text-align: center;
+    font-weight: bold;
+    color: #3498db;
+    border: 1px solid #3498db;
+} 

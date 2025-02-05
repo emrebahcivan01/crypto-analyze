@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kripto Para Teknik Analiz</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container mt-4">
+        <h1 class="text-center mb-4">Kripto Para Teknik Analiz</h1>
+        
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Analiz Parametreleri</h5>
+                        <form id="analyzeForm">
+                            <div class="mb-3">
+                                <label for="symbol" class="form-label">Kripto Para</label>
+                                <select class="form-select" id="symbol" name="symbol" required>
+                                    {% for symbol in symbols %}
+                                    <option value="{{ symbol }}">{{ symbol }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="timeframe" class="form-label">Zaman Aralığı</label>
+                                <select class="form-select" id="timeframe" name="timeframe">
+                                    <option value="1m">1 Dakika</option>
+                                    <option value="5m">5 Dakika</option>
+                                    <option value="15m">15 Dakika</option>
+                                    <option value="1h" selected>1 Saat</option>
+                                    <option value="4h">4 Saat</option>
+                                    <option value="1d">1 Gün</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100">Analiz Et</button>
+                        </form>
+                    </div>
+                </div>
+                
+                <div class="card mt-4" id="analysisResult" style="display: none;">
+                    <div class="card-body">
+                        <h5 class="card-title">Analiz Sonuçları</h5>
+                        <div id="resultContent"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-8">
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title">TradingView Grafiği</h5>
+                        <div id="tradingview_widget"></div>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Teknik Analiz Grafiği</h5>
+                        <div id="chartContainer"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+
+    <!-- TradingView Widget BEGIN -->
+    <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
+    <script type="text/javascript">
+    let tvWidget = null;
+
+    function createTradingViewWidget(symbol) {
+        if (tvWidget) {
+            tvWidget.remove();
+            tvWidget = null;
+        }
+
+        tvWidget = new TradingView.widget({
+            "width": "100%",
+            "height": 500,
+            "symbol": "BINANCE:" + symbol,
+            "interval": "60",
+            "timezone": "Europe/Istanbul",
+            "theme": "dark",
+            "style": "1",
+            "locale": "tr",
+            "toolbar_bg": "#2d2d2d",
+            "enable_publishing": false,
+            "allow_symbol_change": true,
+            "container_id": "tradingview_widget",
+            "studies": [
+                "RSI@tv-basicstudies",
+                "MACD@tv-basicstudies",
+                "MAExp@tv-basicstudies",
+                "PivotPointsHighLow@tv-basicstudies"
+            ],
+            "drawings": [
+                "FibonacciRetracement",
+                "TrendLine",
+                "HorizontalLine",
+                "VerticalLine"
+            ],
+            "saved_data": {},
+            "overrides": {},
+            "disabled_features": [],
+            "enabled_features": ["support_multicharts"],
+            "loading_screen": { "backgroundColor": "#ffffff" }
+        });
+    }
+
+    function drawSupportResistance(levels) {
+        if (!tvWidget) return;
+
+        tvWidget.onChartReady(() => {
+            setTimeout(() => {
+                const chart = tvWidget.chart();
+                // Önceki çizimleri temizle
+                chart.removeAllShapes();
+                
+                const colors = {
+                    major_resistance: "#FF0000",  // Kırmızı
+                    minor_resistance1: "#FF6B6B", // Açık kırmızı
+                    minor_resistance2: "#FFB6B6", // Daha açık kırmızı
+                    major_support: "#00FF00",     // Yeşil
+                    minor_support1: "#6BFF6B",    // Açık yeşil
+                    minor_support2: "#B6FFB6"     // Daha açık yeşil
+                };
+
+                // Her seviye için yatay çizgi çiz
+                for (const [level_name, price] of Object.entries(levels)) {
+                    if (level_name !== 'current_price' && colors[level_name]) {
+                        chart.createShape(
+                            { time: chart.getVisibleRange().from, price: price },
+                            { time: chart.getVisibleRange().to, price: price },
+                            {
+                                name: "Horizontal Line",
+                                overrides: {
+                                    linecolor: colors[level_name],
+                                    linewidth: 2,
+                                    linestyle: 0,
+                                    showLabel: true,
+                                    text: level_name.replace(/_/g, ' ').toUpperCase(),
+                                    textcolor: colors[level_name],
+                                    fontsize: 12
+                                }
+                            }
+                        );
+                    }
+                }
+            }, 1000); // 1 saniye bekle
+        });
+    }
+
+    $(document).ready(function() {
+        // Sayfa yüklendiğinde ilk sembol için widget'ı oluştur
+        const initialSymbol = $('#symbol').val().replace('/', '');
+        createTradingViewWidget(initialSymbol);
+        
+        // Sembol değiştiğinde widget'ı güncelle
+        $('#symbol').on('change', function() {
+            const newSymbol = $(this).val().replace('/', '');
+            createTradingViewWidget(newSymbol);
+        });
+        
+        // Analiz form submit işleyicisini güncelle
+        $('#analyzeForm').on('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            
+            $('#chartContainer').html('<div class="text-center"><div class="spinner-border" role="status"></div><p>Analiz yapılıyor...</p></div>');
+            $('#analysisResult').hide();
+            
+            $.ajax({
+                url: '/analyze',
+                method: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function(response) {
+                    if (response.success) {
+                        $('#chartContainer').html(response.chart);
+                        
+                        // TradingView grafiğine destek/direnç çizgilerini çiz
+                        if (tvWidget && tvWidget.chart) {
+                            tvWidget.onChartReady(() => {
+                                setTimeout(() => {
+                                    drawSupportResistance(response.analysis.support_resistance);
+                                }, 1000);
+                            });
+                        }
+                        
+                        // Analiz sonuçlarını göster
+                        let resultHtml = `
+                            <div class="mb-3">
+                                <h6>Genel Sinyal: <span class="signal-${response.analysis.overall_signal === 'ALIŞ' ? 'buy' : 'sell'}">${response.analysis.overall_signal}</span></h6>
+                                <p>Güven Skoru: ${response.analysis.confidence_score.toFixed(2)}%</p>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <h6>Destek/Direnç Seviyeleri:</h6>
+                                <ul class="list-unstyled">
+                                    <li>Majör Direnç: ${response.analysis.support_resistance.major_resistance.toFixed(2)}</li>
+                                    <li>Minör Direnç 2: ${response.analysis.support_resistance.minor_resistance2.toFixed(2)}</li>
+                                    <li>Minör Direnç 1: ${response.analysis.support_resistance.minor_resistance1.toFixed(2)}</li>
+                                    <li class="current-price">Güncel Fiyat: ${response.analysis.support_resistance.current_price.toFixed(2)}</li>
+                                    <li>Minör Destek 1: ${response.analysis.support_resistance.minor_support1.toFixed(2)}</li>
+                                    <li>Minör Destek 2: ${response.analysis.support_resistance.minor_support2.toFixed(2)}</li>
+                                    <li>Majör Destek: ${response.analysis.support_resistance.major_support.toFixed(2)}</li>
+                                </ul>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <h6>Long Giriş Noktaları:</h6>
+                                <ul class="list-unstyled">
+                                ${response.analysis.entry_points.long.map(entry => `
+                                    <li class="entry-point">
+                                        <strong>${entry.strength}</strong> - ${entry.price.toFixed(2)}
+                                        <br><small>${entry.reason}</small>
+                                    </li>
+                                `).join('')}
+                                </ul>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <h6>Short Giriş Noktaları:</h6>
+                                <ul class="list-unstyled">
+                                ${response.analysis.entry_points.short.map(entry => `
+                                    <li class="entry-point">
+                                        <strong>${entry.strength}</strong> - ${entry.price.toFixed(2)}
+                                        <br><small>${entry.reason}</small>
+                                    </li>
+                                `).join('')}
+                                </ul>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <h6>İndikatör Detayları:</h6>
+                                <ul class="list-unstyled">
+                                ${Object.entries(response.analysis.indicators).map(([indicator, data]) => `
+                                    <li class="mb-2">
+                                        <strong>${indicator.toUpperCase()}</strong>: 
+                                        <span class="signal-${data.signal === 'ALIŞ' ? 'buy' : data.signal === 'SATIŞ' ? 'sell' : 'neutral'}">${data.signal}</span>
+                                    </li>
+                                `).join('')}
+                                </ul>
+                            </div>
+                        `;
+                        
+                        $('#resultContent').html(resultHtml);
+                        $('#analysisResult').show();
+                    } else {
+                        alert('Hata: ' + response.error);
+                    }
+                },
+                error: function() {
+                    alert('Analiz sırasında bir hata oluştu.');
+                }
+            });
+        });
+
+        // Select2'yi başlat
+        $('#symbol').select2({
+            theme: 'bootstrap',
+            placeholder: 'Coin ara...',
+            allowClear: true,
+            width: '100%'
+        });
+        
+        // Select2 stilini düzelt
+        $('.select2-container--default').css({
+            'width': '100%'
+        });
+    });
+    </script>
+    <!-- TradingView Widget END -->
+</body>
+</html> 
